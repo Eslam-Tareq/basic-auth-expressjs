@@ -111,7 +111,9 @@ export const forgetPasswordService = async (body: ForgetPasswordDto) => {
     await sendMail({
       email: user.email,
       subject: "your password reset token (valid for 10 minutes)",
-      message: `forget your password? submit a patch request with your new password and passwordConfirm to: ${process.env.FRONTEND_PASSWORD_RESET_URL}/${passwordResetToken}.\n if you didn't forget your password, please ignore this email!`,
+      message: `forget your password? submit a patch request with your new password and passwordConfirm to: 
+      ${process.env.FRONTEND_PASSWORD_RESET_URL}/${passwordResetToken}
+      if you didn't forget your password, please ignore this email!`,
     });
   } catch (err) {
     user.passwordResetToken = undefined;
