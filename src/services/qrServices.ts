@@ -14,3 +14,12 @@ export const getCurrentUUIDService = async (userId: string) => {
   const user = await User.findById(userId);
   return user?.qrCode;
 };
+
+export const RegenerateCurrentUUIDService = async (userId: string) => {
+  const user = await User.findById(userId);
+  if (!user) throw new Error("user not found");
+  const newUUID = generateUniqueUUID(user.email);
+  user.qrCode = newUUID;
+  await user.save();
+  return newUUID;
+};
