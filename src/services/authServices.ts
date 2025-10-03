@@ -4,7 +4,7 @@ import { JwtPayload } from "jsonwebtoken";
 import AppError from "../utils/appError";
 import catchAsync from "express-async-handler";
 import { createAccessToken, verifyTokenAsync } from "../utils/jwt";
-import { userDocument } from "../types/documentTypes";
+import { mongoId, userDocument } from "../types/documentTypes";
 import { hashingPassword, isCorrectPassword } from "../utils/password";
 import {
   ForgetPasswordDto,
@@ -14,16 +14,20 @@ import {
 } from "../dtos/authDto";
 import crypto from "crypto";
 import { sendMail } from "../config/email";
+import { generateUniqueUUID } from "./qrServices";
 export const signUpService = async (body: signUpDto) => {
-  const { name, email, password } = body;
+  const { name, email, password, phone } = body;
   // hashing password before saving it in data base
 
   const hashedPassword = await hashingPassword(password);
+  const qrCode = generateUniqueUUID(email);
   //1- create user
   const newUser = await User.create({
     name,
     email,
     password: hashedPassword,
+    phone,
+    qrCode,
   });
   //2- create access token for user
   const accessToken = createAccessToken(newUser.id);
@@ -107,13 +111,16 @@ export const forgetPasswordService = async (body: ForgetPasswordDto) => {
     await sendMail({
       email: user.email,
       subject: "your password reset token (valid for 10 minutes)",
-      message: `forget your password? submit a patch request with your new password and passwordConfirm to: ${process.env.FRONTEND_URL}/${passwordResetToken}.\n if you didn't forget your password, please ignore this email!`,
+      message: `forget your password? submit a patch request with your new password and passwordConfirm to: ${process.env.FRONTEND_PASSWORD_RESET_URL}/${passwordResetToken}.\n if you didn't forget your password, please ignore this email!`,
     });
   } catch (err) {
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
     await user.save({ validateBeforeSave: false });
-    throw new AppError("there was an error sending the email. try again later");
+    throw new AppError(
+      "there was an error sending the email. try again later",
+      400
+    );
   }
 };
 
@@ -123,7 +130,7 @@ export const resetPasswordService = async (
 ) => {
   const user = await User.findOne({
     passwordResetToken,
-    passwordResetExpires: { $gt: new Date() },
+    passwordResetExpires: { $gte: Date.now() },
   });
   if (!user) {
     throw new AppError("token is invalid or has expired", 400);
@@ -133,4 +140,9 @@ export const resetPasswordService = async (
   user.passwordResetToken = undefined;
   user.passwordResetExpires = undefined;
   await user.save();
+};
+
+export const getCurrentUserService = async (userId: mongoId) => {
+  const user = await User.findById(userId);
+  return user;
 };

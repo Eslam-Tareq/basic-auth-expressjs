@@ -8,6 +8,7 @@ export interface IUser extends mongoose.Document {
   passwordResetToken?: string;
   passwordResetExpires?: Date;
   refreshTokens: string[];
+  qrCode: string;
 }
 
 const userSchema = new mongoose.Schema<IUser>(
@@ -26,7 +27,12 @@ const userSchema = new mongoose.Schema<IUser>(
 
     passwordResetToken: String,
     passwordResetExpires: Date,
+    qrCode: {
+      type: String,
+      unique: true,
+    },
   },
+
   {
     timestamps: true,
   }

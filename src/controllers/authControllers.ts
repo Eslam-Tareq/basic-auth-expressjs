@@ -2,11 +2,19 @@ import { Request, Response, NextFunction } from "express";
 
 import catchAsync from "express-async-handler";
 import {
+  forgetPasswordService,
   logInService,
   logOutService,
+  resetPasswordService,
   signUpService,
 } from "../services/authServices";
-import { logInDto, signUpDto } from "../dtos/authDto";
+import {
+  ForgetPasswordDto,
+  logInDto,
+  ResetPasswordDto,
+  ResetTokenDictionary,
+  signUpDto,
+} from "../dtos/authDto";
 
 export const signUp = catchAsync(
   async (
@@ -68,6 +76,43 @@ export const getMe = catchAsync(
       res.status(200).json({
         success: true,
         user: req.user,
+      });
+    } catch (err) {
+      return next(err);
+    }
+  }
+);
+
+export const forgetPassword = catchAsync(
+  async (
+    req: Request<{}, {}, ForgetPasswordDto>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      await forgetPasswordService(req.body);
+      res.status(200).json({
+        success: true,
+        message: "reset email sent successfully",
+      });
+    } catch (err) {
+      return next(err);
+    }
+  }
+);
+
+export const resetPassword = catchAsync(
+  async (
+    req: Request<ResetTokenDictionary, {}, ResetPasswordDto>,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { passwordResetToken } = req.params;
+      await resetPasswordService(req.body, passwordResetToken);
+      res.status(200).json({
+        success: true,
+        message: "password reset successfully",
       });
     } catch (err) {
       return next(err);

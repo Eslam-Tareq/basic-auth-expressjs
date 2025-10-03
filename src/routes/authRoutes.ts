@@ -1,14 +1,31 @@
 import express from "express";
-import { getMe, logIn, logOut, signUp } from "../controllers/authControllers";
+import {
+  forgetPassword,
+  getMe,
+  logIn,
+  logOut,
+  resetPassword,
+  signUp,
+} from "../controllers/authControllers";
 import { protect } from "../services/authServices";
-import { signUpValidator } from "../middlewares/validators/auth.validator";
+import {
+  forgetPasswordValidator,
+  resetPasswordValidator,
+  signUpValidator,
+} from "../middlewares/validators/auth.validator";
 const authRouter = express.Router();
 
-authRouter.post("/signup", signUpValidator, signUp);
+authRouter.post("/register", signUpValidator, signUp);
 
-authRouter.post("/logIn", logIn);
+authRouter.post("/login", logIn);
 authRouter.post("/logout", protect, logOut);
-
-authRouter.get("/getMe", protect, getMe);
+authRouter.post("/forget-password", forgetPasswordValidator, forgetPassword);
+authRouter.put(
+  "/reset-password/:passwordResetToken",
+  resetPasswordValidator,
+  resetPassword
+);
+authRouter.get("/me", protect, getMe);
+authRouter.get("/qrcode", protect, getMe);
 
 export default authRouter;
