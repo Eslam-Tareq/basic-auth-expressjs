@@ -62,7 +62,7 @@ export const protect = catchAsync(
         req.headers.authorization &&
         req.headers.authorization.startsWith("Bearer")
       ) {
-        token = req.headers.authorization.split(" ")[0];
+        token = req.headers.authorization.split(" ")[1];
       } else {
         token = req.cookies.accessToken;
       }
